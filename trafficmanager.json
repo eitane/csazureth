@@ -35,11 +35,11 @@
                 "description": "Relative DNS Name for the Public IPs used to access the Virtual Machines, must be globally unique.  An index will be appended for each instance."
             }
         },
-        "proxyScaleCount": {
+        "scaleCount": {
           "type": "int",
           "defaultValue": 1,
           "metadata": {
-            "description": "Number of proxy servers"
+            "description": "Number of servers"
           }
         },
         "publicIPPrefix": {
@@ -83,11 +83,11 @@
             "name": "[concat(parameters('AppEnv'), parameters('location'),'TM')]",
             "location": "global",
             "dependsOn": [
-                "[concat('Microsoft.Network/publicIPAddresses/', parameters('appEnv'), parameters('location') ,parameters('publicIPPrefix'), '0')]"
+                "[concat('Microsoft.Network/publicIPAddresses/', parameters('appEnv'), replace(parameters('location'),' ','_') ,parameters('publicIPPrefix'), '0')]"
             ],
             "copy": {
                 "name": "ipLoop",
-                "count": "[parameters('proxyScaleCount')]"
+                "count": "[parameters('scaleCount')]"
             },
             "properties": {
                 "profileStatus": "Enabled",
@@ -106,7 +106,7 @@
                         "name": "concat('endpoint',copyindex())",
                         "type": "Microsoft.Network/trafficManagerProfiles/azureEndpoints",
                         "properties": {
-                            "targetResourceId": "[resourceId('Microsoft.Network/publicIPAddresses',concat(parameters('appEnv'), parameters('location'), parameters('publicIPPrefix'), copyindex()))]",
+                            "targetResourceId": "[resourceId('Microsoft.Network/publicIPAddresses',concat(parameters('appEnv'), replace(parameters('location'),' ','_'), parameters('publicIPPrefix'), copyindex()))]",
                             "endpointStatus": "Enabled",
                             "weight": 1
                         }                        
