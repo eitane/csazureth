@@ -15,6 +15,7 @@
         "East Asia",
         "South East Asia",
         "Australia Southeast",
+        "Australia East",
         "Japan West",
         "Japan East"
       ],
@@ -79,36 +80,8 @@
         "description": "Prefix for the name of Servers"
       }
     },
-    "skuName": {
-      "type": "string",
-      "allowedValues": [
-        "Standard_Small",
-        "Standard_Medium",
-        "Standard_Large"
-      ],
-      "defaultValue": "Standard_Small",
-      "metadata": {
-        "description": "Sku Name"
-      }
-    },
     "nicName": {
       "type": "string"
-    },
-    "availabilitySetName": {
-      "type": "string"
-    },
-    "linuxOSVersion": {
-      "type": "string",
-      "defaultValue": "7.1",
-      "allowedValues": [
-        "6.7",
-        "7.0",
-        "7.1",
-        "7.2"
-      ],
-      "metadata": {
-        "description": "The Linux version for the VM. This will pick a fully patched image of this given Windows version. Allowed values: 2008-R2-SP1, 2012-Datacenter, 2012-R2-Datacenter."
-      }
     },
     "scaleCount": {
       "type": "int",
