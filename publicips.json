@@ -29,22 +29,10 @@
         "description": "Environment, ususally the resrouce group name."
       }
     },
-    "adminUsername": {
-      "type": "string",
-      "metadata": {
-        "description": "Username for the Virtual Machine."
-      }
-    },
     "proxyDNSName": {
       "type": "string",
       "metadata": {
         "description": "DNS name for the proxy"
-      }
-    },
-    "adminPassword": {
-      "type": "securestring",
-      "metadata": {
-        "description": "Password for the Virtual Machine."
       }
     },
     "proxyVmNamePrefix": {
@@ -53,13 +41,6 @@
         "description": "Prefix for the name of Proxy servers"
       },
       "type": "string"
-    },
-    "vmSize": {
-      "type": "string",
-      "defaultValue": "Standard_D2",
-      "metadata": {
-        "description": "Size of the VM"
-      }
     },
     "sizeOfEachDataDiskInGB": {
       "type": "string",
@@ -84,31 +65,6 @@
       "defaultValue": "proxyserverpubIP",
       "metadata": {
         "description": "Prefix for the name of Proxy Servers"
-      }
-    },
-    "skuName": {
-      "type": "string",
-      "allowedValues": [
-        "Standard_Small",
-        "Standard_Medium",
-        "Standard_Large"
-      ],
-      "defaultValue": "Standard_Small",
-      "metadata": {
-        "description": "Sku Name"
-      }
-    },
-    "linuxOSVersion": {
-      "type": "string",
-      "defaultValue": "7.1",
-      "allowedValues": [
-        "6.7",
-        "7.0",
-        "7.1",
-        "7.2"
-      ],
-      "metadata": {
-        "description": "The Linux version for the VM. This will pick a fully patched image of this given Windows version. Allowed values: 2008-R2-SP1, 2012-Datacenter, 2012-R2-Datacenter."
       }
     },
     "proxyScaleCount": {
