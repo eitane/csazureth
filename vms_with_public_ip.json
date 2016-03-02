@@ -127,7 +127,7 @@
         "count": "[parameters('scaleCount')]"
       },
       "dependsOn": [
-        "[resourceId('Microsoft.Network/publicIPAddresses/' , parameters('appEnv'), replace(parameters('location'),' ','_') , parameters('publicIPPrefix'), copyIndex())]",
+        "[resourceId('Microsoft.Network/publicIPAddresses/' , concat(parameters('appEnv'), replace(parameters('location'),' ','_') , parameters('publicIPPrefix'), copyIndex()))]",
         "[concat('Microsoft.Network/virtualNetworks/', parameters('VNetName'))]"
       ],
       "properties": {
