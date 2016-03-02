@@ -79,6 +79,12 @@
       "metadata": {
         "description": "The subnet for this vm"
       }
+    },
+    "VNetName": {
+      "type": "string",
+      "metadata": {
+        "description": "The environment VNET name"
+      }
     }
   },
   "variables": {
