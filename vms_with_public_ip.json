@@ -29,18 +29,6 @@
         "description": "Environment, ususally the resrouce group name."
       }
     },
-    "adminUsername": {
-      "type": "string",
-      "metadata": {
-        "description": "Username for the Virtual Machine."
-      }
-    },
-    "adminPassword": {
-      "type": "securestring",
-      "metadata": {
-        "description": "Password for the Virtual Machine."
-      }
-    },
     "vmNamePrefix": {
       "defaultValue": "csproxy",
       "metadata": {
@@ -191,8 +179,8 @@
         },
         "osProfile": {
           "computername": "[concat(parameters('vmNamePrefix'), copyIndex())]",
-          "adminPassword": "[parameters('machineSettings').adminUsername]",
-          "adminUsername": "[parameters('machineSettings').adminPassword]"
+          "adminPassword": "[parameters('machineSettings').adminPassword]",
+          "adminUsername": "[parameters('machineSettings').adminUsername]"
         },
         "storageProfile": {
           "dataDisks": [
