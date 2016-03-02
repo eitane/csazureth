@@ -1,0 +1,118 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "location": {
+          "type": "string",
+          "allowedValues": [
+            "East US",
+            "West US",
+            "North Central US",
+            "South Central US",
+            "Central US",
+            "West Europe",
+            "North Europe",
+            "East Asia",
+            "South East Asia",
+            "Australia Southeast",
+            "Australia East",
+            "Japan West",
+            "Japan East"
+          ],
+        "metadata": {
+          "description": "Deployment location"
+        }
+      },
+        "uniqueDnsName": {
+            "type": "string",
+            "metadata": {
+                "description": "Relative DNS name for the traffic manager profile, resulting FQDN will be <uniqueDnsName>.trafficmanager.net, must be globally unique."
+            }
+        },
+        "uniqueDnsNameForPublicIP": {
+            "type": "string",
+            "metadata": {
+                "description": "Relative DNS Name for the Public IPs used to access the Virtual Machines, must be globally unique.  An index will be appended for each instance."
+            }
+        },
+        "proxyScaleCount": {
+          "type": "int",
+          "defaultValue": 1,
+          "metadata": {
+            "description": "Number of proxy servers"
+          }
+        },
+        "publicIPPrefix": {
+          "type": "string",
+          "defaultValue": "proxyserverpubIP",
+          "metadata": {
+            "description": "prefix for proxies public ip addresses"
+          }
+        },
+          "appEnv": {
+          "type": "string",
+          "metadata": {
+            "description": "Environment, ususally the resrouce group name."
+          }
+        }
+    },
+    "variables": {
+        "tmApiVersion": "2015-04-28-preview",
+        "apiVersion": "2015-05-01-preview",
+        "imagePublisher": "Canonical",
+        "imageOffer": "UbuntuServer",
+        "OSDiskName": "osdiskforlinuxsimple",
+        "nicName": "myVMNic",
+        "addressPrefix": "10.0.0.0/16",
+        "subnetName": "Subnet",
+        "subnetPrefix": "10.0.0.0/24",
+        "storageAccountType": "Standard_LRS",
+        "publicIPAddressName": "myPublicIP",
+        "publicIPAddressType": "Dynamic",
+        "vmStorageAccountContainerName": "vhds",
+        "vmName": "MyUbuntuVM",
+        "vmSize": "Standard_D1",
+        "virtualNetworkName": "MyVNET",
+        "vnetID": "[resourceId('Microsoft.Network/virtualNetworks',variables('virtualNetworkName'))]",
+        "subnetRef": "[concat(variables('vnetID'),'/subnets/',variables('subnetName'))]"
+    },
+    "resources": [
+        {
+            "apiVersion": "[variables('tmApiVersion')]",
+            "type": "Microsoft.Network/trafficManagerProfiles",
+            "name": "[concat(parameters('AppEnv'), parameters('location'),'TM')]",
+            "location": "global",
+            "dependsOn": [
+                "[concat('Microsoft.Network/publicIPAddresses/', parameters('appEnv'), parameters('location') ,parameters('publicIPPrefix'), '0')]"
+            ],
+            "copy": {
+                "name": "ipLoop",
+                "count": "[parameters('proxyScaleCount')]"
+            },
+            "properties": {
+                "profileStatus": "Enabled",
+                "trafficRoutingMethod": "Weighted",
+                "dnsConfig": {
+                    "relativeName": "[parameters('uniqueDnsName')]",
+                    "ttl": 30
+                },
+                "monitorConfig": {
+                    "protocol": "http",
+                    "port": 80,
+                    "path": "/"
+                },
+                "endpoints": [
+                    {
+                        "name": "concat('endpoint',copyindex())",
+                        "type": "Microsoft.Network/trafficManagerProfiles/azureEndpoints",
+                        "properties": {
+                            "targetResourceId": "[resourceId('Microsoft.Network/publicIPAddresses',concat(parameters('appEnv'), parameters('location'), parameters('publicIPPrefix'), copyindex()))]",
+                            "endpointStatus": "Enabled",
+                            "weight": 1
+                        }                        
+                    }
+                ]
+            }
+        }
+    ]
+}
