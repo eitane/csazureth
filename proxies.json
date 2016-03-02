@@ -46,7 +46,7 @@
         "description": "Password for the Virtual Machine."
       }
     },
-    "proxyVmNamePrefix": {
+    "vmNamePrefix": {
       "defaultValue": "csproxy",
       "metadata": {
         "description": "Prefix for the name of Proxy servers"
@@ -78,11 +78,11 @@
         "description": "Type of public IP address"
       }
     },
-    "proxyServersPublicIPPrefix": {
+    "publicIPPrefix": {
       "type": "string",
-      "defaultValue": "proxyserverpubIP",
+      "defaultValue": "serverpubIP",
       "metadata": {
-        "description": "Prefix for the name of Proxy Servers"
+        "description": "Prefix for the name of Servers"
       }
     },
     "skuName": {
@@ -97,6 +97,12 @@
         "description": "Sku Name"
       }
     },
+    "nicName": {
+      "type": "string"
+    },
+    "availabilitySetName": {
+      "type": "string"
+    },
     "linuxOSVersion": {
       "type": "string",
       "defaultValue": "7.1",
@@ -110,11 +116,11 @@
         "description": "The Linux version for the VM. This will pick a fully patched image of this given Windows version. Allowed values: 2008-R2-SP1, 2012-Datacenter, 2012-R2-Datacenter."
       }
     },
-    "proxyScaleCount": {
+    "scaleCount": {
       "type": "int",
       "defaultValue": 1,
       "metadata": {
-        "description": "Number of proxy servers"
+        "description": "Number of VMs"
       }
     },
     "subnet": {
@@ -122,43 +128,51 @@
       "metadata": {
         "description": "The subnet for this vm"
       }
+    },
+    "machineSettings": {
+      "type": "object",
+      "metadata": {
+        "description": "The OS and user settings for the machine"
+      }
+    },
+    "VNetName": {
+      "type": "string",
+      "metadata": {
+        "description": "The environment VNET name"
+      }
+    },
+    "StorageAccountName": {
+      "type": "string",
+      "metadata": {
+        "description": "The storage account to use"
+      }
+    },
+    "availabilitySetName": {
+      "type": "string",
+      "metadata": {
+        "description": "The availability set name for these VMs"
+      }
     }
   },
   "variables": {
     "apiVer": "2015-06-15",
-    "AppPrefix": "10.1.2.0/24",
-    "imageOffer": "CentOS",
-    "imagePublisher": "OpenLogic",
-    "OSDiskName": "osdisklinux",
-    "proxyAvailabilitySetName": "proxyAvSet",
-    "proxyNicName": "proxyNic",
-    "ProxyNsgname": "ProxyNSG",
-    "ProxyPrefix": "10.1.1.0/24",
-    "ProxyServerIP1": "10.1.1.4",
-    "ProxyServerIP2": "10.1.1.5",
-    "ProxySubnetName": "ProxySubnet",
-    "ProxySubnetRef": "[concat(variables('vnetID'),'/subnets/', parameters('subnet').name)]",
+    "SubnetRef": "[concat(variables('vnetID'),'/subnets/', parameters('subnet').name)]",
     "storageAccountType": "Standard_LRS",
-    "newAppStorageAccountName": "csappstorage",
-    "newDBStorageAccountName": "csdbappstorage",
-    "newElasticStorageAccountName": "cselasticstorage",
-    "vmSize": "Standard_D2",
     "vmStorageAccountContainerName": "vhds",
-    "vnetID": "[resourceId('Microsoft.Network/virtualNetworks', parameters('VNetName'))]",
-    "VNetName": "DEVVNET"
+    "vnetID": "[resourceId('Microsoft.Network/virtualNetworks', parameters('VNetName'))]"
   },
   "resources": [
     {
       "apiVersion": "[variables('apiVer')]",
       "type": "Microsoft.Network/networkInterfaces",
-      "name": "[concat(variables('proxyNicName'), copyIndex())]",
+      "name": "[concat(parameters('nicName'), copyIndex())]",
       "location": "[parameters('location')]",
       "copy": {
         "name": "foo",
-        "count": "[parameters('proxyScaleCount')]"
+        "count": "[parameters('scaleCount')]"
       },
       "dependsOn": [
-        "[concat('Microsoft.Network/publicIPAddresses/', parameters('proxyServersPublicIPPrefix'), copyIndex())]",
+        "[concat('Microsoft.Network/publicIPAddresses/', parameters('publicIPPrefix'), copyIndex())]",
         "[concat('Microsoft.Network/virtualNetworks/', parameters('VNetName'))]"
       ],
       "properties": {
@@ -167,13 +181,13 @@
             "name": "ipconfig1",
             "properties": {
               "privateIPAllocationMethod": "Static",
-              "internalDnsNameLabel": "[concat(parameters('proxyVmNamePrefix'), copyIndex())]",
+              "internalDnsNameLabel": "[concat(parameters('vmNamePrefix'), copyIndex())]",
               "privateIPAddress": "[concat('10.1.1.', copyIndex(4))]",
               "publicIPAddress": {
-                "id": "[resourceId('Microsoft.Network/publicIPAddresses', concat(parameters('proxyServersPublicIPPrefix'), copyIndex()))]"
+                "id": "[resourceId('Microsoft.Network/publicIPAddresses', concat(parameters('publicIPPrefix'), copyIndex()))]"
               },
               "subnet": {
-                "id": "[variables('ProxySubnetRef')]"
+                "id": "[variables('SubnetRef')]"
               }
             }
           }
@@ -183,33 +197,33 @@
     {
       "apiVersion": "[variables('apiVer')]",
       "location": "[parameters('location')]",
-      "name": "[variables('proxyAvailabilitySetName')]",
+      "name": "[parameters('availabilitySetName')]",
       "properties": { },
       "type": "Microsoft.Compute/availabilitySets"
     },
     {
       "apiVersion": "2015-05-01-preview",
       "type": "Microsoft.Compute/virtualMachines",
-      "name": "[concat(parameters('proxyVmNamePrefix'), copyIndex())]",
+      "name": "[concat(parameters('vmNamePrefix'), copyIndex())]",
       "location": "[parameters('location')]",
       "copy": {
         "name": "foo",
-        "count": "[parameters('proxyScaleCount')]"
+        "count": "[parameters('scaleCount')]"
       },
       "dependsOn": [
-        "[concat('Microsoft.Storage/storageAccounts/', variables('newStorageAccountName'))]",
-        "[concat('Microsoft.Network/networkInterfaces/', variables('proxyNicName'), copyIndex())]",
-        "[concat('Microsoft.Compute/availabilitySets/', variables('proxyAvailabilitySetName'))]"
+        "[concat('Microsoft.Storage/storageAccounts/', parameters('storageAccountName'))]",
+        "[concat('Microsoft.Network/networkInterfaces/', parameters('nicName'), copyIndex())]",
+        "[concat('Microsoft.Compute/availabilitySets/', parameters('availabilitySetName'))]"
       ],
       "properties": {
         "availabilitySet": {
-          "id": "[resourceId('Microsoft.Compute/availabilitySets', variables('proxyAvailabilitySetName'))]"
+          "id": "[resourceId('Microsoft.Compute/availabilitySets', parameters('availabilitySetName'))]"
         },
         "hardwareProfile": {
           "vmSize": "[parameters('vmSize')]"
         },
         "osProfile": {
-          "computername": "[concat(parameters('proxyVmNamePrefix'), copyIndex())]",
+          "computername": "[concat(parameters('vmNamePrefix'), copyIndex())]",
           "adminPassword": "[parameters('machineSettings').adminUsername]",
           "adminUsername": "[parameters('machineSettings').adminPassword]"
         },
@@ -220,7 +234,7 @@
               "diskSizeGB": "100",
               "lun": 0,
               "vhd": {
-                "uri": "[concat('http://',variables('newAppStorageAccountName'),'.blob.core.windows.net/vhds/', 'datadisk', copyIndex(), '.vhd')]"
+                "uri": "[concat('http://',parameters('storageAccountName'),'.blob.core.windows.net/vhds/', 'datadisk', copyIndex(), '.vhd')]"
               },
               "createOption": "Empty"
             }
@@ -229,7 +243,7 @@
           "osDisk": {
             "name": "osdisk",
             "vhd": {
-              "uri": "[concat('http://',variables('newAppStorageAccountName'),'.blob.core.windows.net/vhds/', 'osdisk', copyIndex(), '.vhd')]"
+              "uri": "[concat('http://',parameters('storageAccountName'),'.blob.core.windows.net/vhds/', 'osdisk', copyIndex(), '.vhd')]"
             },
             "caching": "ReadWrite",
             "createOption": "FromImage"
@@ -238,7 +252,7 @@
         "networkProfile": {
           "networkInterfaces": [
             {
-              "id": "[resourceId('Microsoft.Network/networkInterfaces', concat(variables('proxyNicName'), copyIndex()))]"
+              "id": "[resourceId('Microsoft.Network/networkInterfaces', concat(parameters('nicName'), copyIndex()))]"
             }
           ]
         }
