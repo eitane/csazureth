@@ -34,12 +34,6 @@
         "description": "Username for the Virtual Machine."
       }
     },
-    "proxyDNSName": {
-      "type": "string",
-      "metadata": {
-        "description": "DNS name for the proxy"
-      }
-    },
     "adminPassword": {
       "type": "securestring",
       "metadata": {
