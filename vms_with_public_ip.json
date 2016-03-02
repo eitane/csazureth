@@ -127,7 +127,7 @@
         "count": "[parameters('scaleCount')]"
       },
       "dependsOn": [
-        "[resourceId('Microsoft.Network/publicIPAddresses/' , replace(parameters('location'),' ','_') , parameters('publicIPPrefix'), copyIndex())]",
+        "[resourceId('Microsoft.Network/publicIPAddresses/' , parameters('appEnv'), replace(parameters('location'),' ','_') , parameters('publicIPPrefix'), copyIndex())]",
         "[concat('Microsoft.Network/virtualNetworks/', parameters('VNetName'))]"
       ],
       "properties": {
@@ -139,7 +139,7 @@
               "internalDnsNameLabel": "[concat(parameters('vmNamePrefix'), copyIndex())]",
               "privateIPAddress": "[concat('10.1.1.', copyIndex(4))]",
               "publicIPAddress": {
-                "id": "[resourceId('Microsoft.Network/publicIPAddresses', concat(replace(parameters('location'),' ','_'),parameters('publicIPPrefix'), copyIndex()))]"
+                "id": "[resourceId('Microsoft.Network/publicIPAddresses', concat(parameters('appEnv'), replace(parameters('location'),' ','_'),parameters('publicIPPrefix'), copyIndex()))]"
               },
               "subnet": {
                 "id": "[variables('SubnetRef')]"
