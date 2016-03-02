@@ -1,0 +1,289 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "location": {
+      "type": "string",
+      "allowedValues": [
+        "East US",
+        "West US",
+        "North Central US",
+        "South Central US",
+        "Central US",
+        "West Europe",
+        "North Europe",
+        "East Asia",
+        "South East Asia",
+        "Australia Southeast",
+        "Japan West",
+        "Japan East"
+      ],
+      "metadata": {
+        "description": "Deployment location"
+      }
+    },
+    "adminUsername": {
+      "type": "string",
+      "metadata": {
+        "description": "Username for the Virtual Machine."
+      }
+    },
+    "appEnv": {
+      "type": "string",
+      "metadata": {
+        "description": "Environment, ususally the resrouce group name."
+      }
+    },
+    "appDNSName": {
+      "type": "string",
+      "metadata": {
+        "description": "DNS name for the app"
+      }
+    },
+    "adminPassword": {
+      "type": "securestring",
+      "metadata": {
+        "description": "Password for the Virtual Machine."
+      }
+    },
+    "appVmNamePrefix": {
+      "defaultValue": "cs",
+      "metadata": {
+        "description": "Prefix for the name of Application servers"
+      },
+      "type": "string"
+    },
+    "dbVmNamePrefix": {
+      "type": "string",
+      "defaultValue": "cass",
+      "metadata": {
+        "description": "Prefix for the name of Database servers"
+      }
+    },
+    "searchVmNamePrefix": {
+      "type": "string",
+      "defaultValue": "search",
+      "metadata": {
+        "description": "Prefix for the name of Search servers"
+      }
+    },
+    "loggingVmNamePrefix": {
+      "type": "string",
+      "defaultValue": "log",
+      "metadata": {
+        "description": "Prefix for the name of logs servers"
+      }
+    },
+    "mgmtVmNamePrefix": {
+      "type": "string",
+      "defaultValue": "sysmgmt",
+      "metadata": {
+        "description": "Prefix for the name of System Management servers"
+      }
+    },
+    "opsCenterVmNamePrefix": {
+      "type": "string",
+      "defaultValue": "opscenter",
+      "metadata": {
+        "description": "Prefix for the name of Database servers"
+      }
+    },
+    "vmSize": {
+      "type": "string",
+      "defaultValue": "Standard_A1",
+      "metadata": {
+        "description": "Size of the VM"
+      }
+    },
+    "vmSize": {
+      "type": "string",
+      "defaultValue": "Standard_D2",
+      "metadata": {
+        "description": "Size of the VM"
+      }
+    },
+    "sizeOfEachDataDiskInGB": {
+      "type": "string",
+      "defaultValue": "50",
+      "metadata": {
+        "description": "Size of the VM Data disk"
+      }
+    },
+    "publicIPAddressType": {
+      "type": "string",
+      "defaultValue": "Dynamic",
+      "allowedValues": [
+        "Dynamic",
+        "Static"
+      ],
+      "metadata": {
+        "description": "Type of public IP address"
+      }
+    },
+    "appServersPublicIPPrefix": {
+      "type": "string",
+      "defaultValue": "appserverpubIP",
+      "metadata": {
+        "description": "Prefix for the name of App Servers"
+      }
+    },
+    "proxyServersPublicIPPrefix": {
+      "type": "string",
+      "defaultValue": "proxyserverpubIP",
+      "metadata": {
+        "description": "Prefix for the name of Proxy Servers"
+      }
+    },
+    "skuName": {
+      "type": "string",
+      "allowedValues": [
+        "Standard_Small",
+        "Standard_Medium",
+        "Standard_Large"
+      ],
+      "defaultValue": "Standard_Small",
+      "metadata": {
+        "description": "Sku Name"
+      }
+    },
+    "linuxOSVersion": {
+      "type": "string",
+      "defaultValue": "7.1",
+      "allowedValues": [
+        "6.7",
+        "7.0",
+        "7.1",
+        "7.2"
+      ],
+      "metadata": {
+        "description": "The Linux version for the VM. This will pick a fully patched image of this given Windows version. Allowed values: 2008-R2-SP1, 2012-Datacenter, 2012-R2-Datacenter."
+      }
+    },
+    "appScaleCount": {
+      "type": "int",
+      "defaultValue": 1,
+      "metadata": {
+        "description": "Number of application servers"
+      }
+    },
+    "subnet": {
+      "type": "object",
+      "metadata": {
+        "description": "The subnet for this vm"
+      }
+    },
+    "machineSettings": {
+      "type": "object",
+      "metadata": {
+        "description": "typical machine settings parameters"
+      }
+    }
+  },
+  "variables": {
+    "apiVer": "2015-06-15",
+    "appAvailabilitySetName": "appAvSet",
+    "appNicName": "appNic",
+    "AppSubnetRef": "[concat(variables('vnetID'),'/subnets/', parameters('subnet').name)]",
+    "OSDiskName": "osdisklinux",
+    "storageAccountType": "Standard_LRS",
+    "newAppStorageAccountName": "csappstorage",
+    "vmSize": "Standard_D2",
+    "vmStorageAccountContainerName": "vhds",
+    "vnetID": "[resourceId('Microsoft.Network/virtualNetworks', parameters('VNetName'))]",
+    "VNetName": "DEVVNET"
+  },
+  "resources": [
+    {
+      "apiVersion": "[variables('apiVer')]",
+      "type": "Microsoft.Network/networkInterfaces",
+      "name": "[concat(variables('appNicName'), copyIndex())]",
+      "location": "[parameters('location')]",
+      "copy": {
+        "name": "foo",
+        "count": "[parameters('appScaleCount')]"
+      },
+      "dependsOn": [
+        "[concat('Microsoft.Network/virtualNetworks/', parameters('VNetName'))]"
+      ],
+      "properties": {
+        "ipConfigurations": [
+          {
+            "name": "ipconfig1",
+            "properties": {
+              "privateIPAllocationMethod": "Static",
+              "internalDnsNameLabel": "[concat(parameters('appVmNamePrefix'), copyIndex())]",
+              "privateIPAddress": "[concat('10.1.2.', copyIndex(4))]",
+              "subnet": {
+                "id": "[variables('AppSubnetRef')]"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "apiVersion": "[variables('apiVer')]",
+      "location": "[parameters('location')]",
+      "name": "[variables('appAvailabilitySetName')]",
+      "properties": { },
+      "type": "Microsoft.Compute/availabilitySets"
+    },
+    {
+      "apiVersion": "2015-05-01-preview",
+      "type": "Microsoft.Compute/virtualMachines",
+      "name": "[concat(parameters('appVmNamePrefix'), copyIndex())]",
+      "location": "[parameters('location')]",
+      "copy": {
+        "name": "foo",
+        "count": "[parameters('appScaleCount')]"
+      },
+      "dependsOn": [
+        "[concat('Microsoft.Storage/storageAccounts/', variables('newappStorageAccountName'))]",
+        "[concat('Microsoft.Network/networkInterfaces/', variables('appNicName'), copyIndex())]",
+        "[concat('Microsoft.Compute/availabilitySets/', variables('appAvailabilitySetName'))]"
+      ],
+      "properties": {
+        "availabilitySet": {
+          "id": "[resourceId('Microsoft.Compute/availabilitySets', variables('appAvailabilitySetName'))]"
+        },
+        "hardwareProfile": {
+          "vmSize": "[parameters('vmSize')]"
+        },
+        "osProfile": {
+          "computername": "[concat(parameters('appVmNamePrefix'), copyIndex())]",
+          "adminPassword": "[parameters('machineSettings').adminUsername]",
+          "adminUsername": "[parameters('machineSettings').adminPassword]"
+        },
+        "storageProfile": {
+          "dataDisks": [
+            {
+              "name": "datadisk",
+              "diskSizeGB": "100",
+              "lun": 0,
+              "vhd": {
+                "uri": "[concat('http://',variables('newappStorageAccountName'),'.blob.core.windows.net/vhds/', 'datadisk', copyIndex(), '.vhd')]"
+              },
+              "createOption": "Empty"
+            }
+          ],
+          "imageReference": "[parameters('machineSettings').osImageReference]",
+          "osDisk": {
+            "name": "osdisk",
+            "vhd": {
+              "uri": "[concat('http://',variables('newappStorageAccountName'),'.blob.core.windows.net/vhds/', 'osdisk', copyIndex(), '.vhd')]"
+            },
+            "caching": "ReadWrite",
+            "createOption": "FromImage"
+          }
+        },
+        "networkProfile": {
+          "networkInterfaces": [
+            {
+              "id": "[resourceId('Microsoft.Network/networkInterfaces', concat(variables('appNicName'), copyIndex()))]"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}
