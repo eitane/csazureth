@@ -162,7 +162,6 @@
         "count": "[parameters('scaleCount')]"
       },
       "dependsOn": [
-        "[concat('Microsoft.Storage/storageAccounts/', parameters('storageAccountName'))]",
         "[concat('Microsoft.Network/networkInterfaces/', parameters('nicName'), copyIndex())]",
         "[concat('Microsoft.Compute/availabilitySets/', parameters('availabilitySetName'))]"
       ],
