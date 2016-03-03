@@ -116,7 +116,7 @@
               "internalDnsNameLabel": "[concat(parameters('vmNamePrefix'), copyIndex())]",
               "privateIPAddress": "[concat(substring(parameters('subnet').prefix,0,7), copyIndex(4))]",
               "subnet": {
-                "id": "[parameters('subnet').name]"
+                "id": "[parameters('subnet').SubnetRef]"
               }
             }
           }
