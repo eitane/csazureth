@@ -147,7 +147,7 @@
     {
       "apiVersion": "[variables('apiVer')]",
       "location": "[parameters('location')]",
-      "name": "[parameters('availabilitySetName')]",
+      "name": "[concat(replace(parameters('location'),' ',''),parameters('availabilitySetName'))]",
       "properties": { },
       "type": "Microsoft.Compute/availabilitySets"
     },
@@ -162,11 +162,11 @@
       },
       "dependsOn": [
         "[concat('Microsoft.Network/networkInterfaces/', parameters('nicName'), copyIndex())]",
-        "[concat('Microsoft.Compute/availabilitySets/', parameters('availabilitySetName'))]"
+        "[concat('Microsoft.Compute/availabilitySets/', replace(parameters('location'),' ',''), parameters('availabilitySetName'))]"
       ],
       "properties": {
         "availabilitySet": {
-          "id": "[resourceId('Microsoft.Compute/availabilitySets', parameters('availabilitySetName'))]"
+          "id": "[resourceId('Microsoft.Compute/availabilitySets', concat(replace(parameters('location'),' ',''),parameters('availabilitySetName')))]"
         },
         "hardwareProfile": {
           "vmSize": "[parameters('vmSize')]"
