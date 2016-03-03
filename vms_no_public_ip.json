@@ -1,0 +1,190 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "location": {
+      "type": "string",
+      "allowedValues": [
+        "East US",
+        "West US",
+        "North Central US",
+        "South Central US",
+        "Central US",
+        "West Europe",
+        "North Europe",
+        "East Asia",
+        "South East Asia",
+        "Australia Southeast",
+        "Australia East",
+        "Japan West",
+        "Japan East"
+      ],
+      "metadata": {
+        "description": "Deployment location"
+      }
+    },
+    "appEnv": {
+      "type": "string",
+      "metadata": {
+        "description": "Environment, ususally the resrouce group name."
+      }
+    },
+    "vmNamePrefix": {
+      "defaultValue": "csproxy",
+      "metadata": {
+        "description": "Prefix for the name of Proxy servers"
+      },
+      "type": "string"
+    },
+    "vmSize": {
+      "type": "string",
+      "defaultValue": "Standard_D2",
+      "metadata": {
+        "description": "Size of the VM"
+      }
+    },
+    "sizeOfEachDataDiskInGB": {
+      "type": "string",
+      "defaultValue": "50",
+      "metadata": {
+        "description": "Size of the VM Data disk"
+      }
+    },
+    "nicName": {
+      "type": "string"
+    },
+    "scaleCount": {
+      "type": "int",
+      "defaultValue": 1,
+      "metadata": {
+        "description": "Number of VMs"
+      }
+    },
+    "subnet": {
+      "type": "object",
+      "metadata": {
+        "description": "The subnet for this vm"
+      }
+    },
+    "machineSettings": {
+      "type": "object",
+      "metadata": {
+        "description": "The OS and user settings for the machine"
+      }
+    },
+    "VNetName": {
+      "type": "string",
+      "metadata": {
+        "description": "The environment VNET name"
+      }
+    },
+    "StorageAccountName": {
+      "type": "string",
+      "metadata": {
+        "description": "The storage account to use"
+      }
+    },
+    "availabilitySetName": {
+      "type": "string",
+      "metadata": {
+        "description": "The availability set name for these VMs"
+      }
+    }
+  },
+  "variables": {
+    "apiVer": "2015-06-15",
+    "storageAccountType": "Standard_LRS",
+    "vmStorageAccountContainerName": "vhds",
+    "vnetID": "[resourceId('Microsoft.Network/virtualNetworks', parameters('VNetName'))]"
+  },
+  "resources": [
+    {
+      "apiVersion": "[variables('apiVer')]",
+      "type": "Microsoft.Network/networkInterfaces",
+      "name": "[concat(parameters('nicName'), copyIndex())]",
+      "location": "[parameters('location')]",
+      "copy": {
+        "name": "foo",
+        "count": "[parameters('scaleCount')]"
+      },
+      "properties": {
+        "ipConfigurations": [
+          {
+            "name": "ipconfig1",
+            "properties": {
+              "privateIPAllocationMethod": "Static",
+              "internalDnsNameLabel": "[concat(parameters('vmNamePrefix'), copyIndex())]",
+              "privateIPAddress": "[concat(substring(parameters('subnet').prefix,0,7), copyIndex(4))]",
+              "subnet": {
+                "id": "[parameters('subnet').SubnetRef]"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "apiVersion": "[variables('apiVer')]",
+      "location": "[parameters('location')]",
+      "name": "[parameters('availabilitySetName')]",
+      "properties": { },
+      "type": "Microsoft.Compute/availabilitySets"
+    },
+    {
+      "apiVersion": "2015-05-01-preview",
+      "type": "Microsoft.Compute/virtualMachines",
+      "name": "[concat(parameters('vmNamePrefix'), copyIndex())]",
+      "location": "[parameters('location')]",
+      "copy": {
+        "name": "foo",
+        "count": "[parameters('scaleCount')]"
+      },
+      "dependsOn": [
+        "[concat('Microsoft.Network/networkInterfaces/', parameters('nicName'), copyIndex())]",
+        "[concat('Microsoft.Compute/availabilitySets/', parameters('availabilitySetName'))]"
+      ],
+      "properties": {
+        "availabilitySet": {
+          "id": "[resourceId('Microsoft.Compute/availabilitySets', parameters('availabilitySetName'))]"
+        },
+        "hardwareProfile": {
+          "vmSize": "[parameters('vmSize')]"
+        },
+        "osProfile": {
+          "computername": "[concat(parameters('vmNamePrefix'), copyIndex())]",
+          "adminPassword": "[parameters('machineSettings').adminPassword]",
+          "adminUsername": "[parameters('machineSettings').adminUsername]"
+        },
+        "storageProfile": {
+          "dataDisks": [
+            {
+              "name": "datadisk",
+              "diskSizeGB": "100",
+              "lun": 0,
+              "vhd": {
+                "uri": "[concat('http://',parameters('storageAccountName'),'.blob.core.windows.net/vhds/', 'datadisk', copyIndex(), '.vhd')]"
+              },
+              "createOption": "Empty"
+            }
+          ],
+          "imageReference": "[parameters('machineSettings').osImageReference]",
+          "osDisk": {
+            "name": "osdisk",
+            "vhd": {
+              "uri": "[concat('http://',parameters('storageAccountName'),'.blob.core.windows.net/vhds/', 'osdisk', copyIndex(), '.vhd')]"
+            },
+            "caching": "ReadWrite",
+            "createOption": "FromImage"
+          }
+        },
+        "networkProfile": {
+          "networkInterfaces": [
+            {
+              "id": "[resourceId('Microsoft.Network/networkInterfaces', concat(parameters('nicName'), copyIndex()))]"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}
