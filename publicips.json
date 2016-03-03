@@ -114,7 +114,7 @@
     {
       "apiVersion": "[variables('apiVer')]",
       "type": "Microsoft.Network/publicIPAddresses",
-      "name": "[concat(parameters('appenv'), replace(parameters('location'),' ','_'), parameters('proxyServersPublicIPPrefix'),copyIndex())]",
+      "name": "[concat(parameters('appenv'), replace(parameters('location'),' ',''), parameters('proxyServersPublicIPPrefix'),copyIndex())]",
       "location": "[parameters('location')]",
       "copy": {
         "name": "iploop",
