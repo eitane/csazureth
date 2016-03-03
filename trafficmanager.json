@@ -90,7 +90,7 @@
                 "profileStatus": "Enabled",
                 "trafficRoutingMethod": "Weighted",
                 "dnsConfig": {
-                    "relativeName": "[parameters('uniqueDnsName')]",
+                    "relativeName": "[concat(parameters('uniqueDnsName'),".",toLower(parameters('location')))]",
                     "ttl": 30
                 },
                 "monitorConfig": {
@@ -100,7 +100,7 @@
                 },
                 "endpoints": [
                     {
-                        "name": "concat('endpoint',copyindex())",
+                        "name": "[concat('endpoint',copyindex())]",
                         "type": "Microsoft.Network/trafficManagerProfiles/azureEndpoints",
                         "properties": {
                             "targetResourceId": "[resourceId('Microsoft.Network/publicIPAddresses',concat(parameters('appEnv'), replace(parameters('location'),' ','_'), parameters('publicIPPrefix'), copyindex()))]",
