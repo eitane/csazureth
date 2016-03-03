@@ -90,7 +90,7 @@
                 "profileStatus": "Enabled",
                 "trafficRoutingMethod": "Weighted",
                 "dnsConfig": {
-                    "relativeName": "[concat(parameters('uniqueDnsName'),".",toLower(parameters('location')))]",
+                    "relativeName": "[concat(parameters('uniqueDnsName'),toLower(parameters('location')))]",
                     "ttl": 30
                 },
                 "monitorConfig": {
