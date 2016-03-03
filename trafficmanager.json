@@ -80,7 +80,7 @@
         {
             "apiVersion": "[variables('tmApiVersion')]",
             "type": "Microsoft.Network/trafficManagerProfiles",
-            "name": "[concat(parameters('AppEnv'), replace(parameters('location'),' ','_'),'TM')]",
+            "name": "[concat(parameters('AppEnv'), replace(parameters('location'),' ',''),'TM')]",
             "location": "global",
             "copy": {
                 "name": "ipLoop",
