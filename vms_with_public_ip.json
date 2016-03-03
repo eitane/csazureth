@@ -137,7 +137,7 @@
                 "id": "[resourceId('Microsoft.Network/publicIPAddresses', concat(parameters('appEnv'), replace(parameters('location'),' ','_'),parameters('publicIPPrefix'), copyIndex()))]"
               },
               "subnet": {
-                "id": "[parameters('subnet').name]"
+                "id": "[parameters('subnet').SubnetRef]"
               }
             }
           }
