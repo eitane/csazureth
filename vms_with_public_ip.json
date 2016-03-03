@@ -111,7 +111,6 @@
   },
   "variables": {
     "apiVer": "2015-06-15",
-    "SubnetRef": "[concat(variables('vnetID'),'/subnets/', parameters('subnet').name)]",
     "storageAccountType": "Standard_LRS",
     "vmStorageAccountContainerName": "vhds",
     "vnetID": "[resourceId('Microsoft.Network/virtualNetworks', parameters('VNetName'))]"
@@ -133,12 +132,12 @@
             "properties": {
               "privateIPAllocationMethod": "Static",
               "internalDnsNameLabel": "[concat(parameters('vmNamePrefix'), copyIndex())]",
-              "privateIPAddress": "[concat('10.1.1.', copyIndex(4))]",
+              "privateIPAddress": "[concat(substring(parameters('subnet').prefix,0,7), copyIndex(4))]",
               "publicIPAddress": {
                 "id": "[resourceId('Microsoft.Network/publicIPAddresses', concat(parameters('appEnv'), replace(parameters('location'),' ','_'),parameters('publicIPPrefix'), copyIndex()))]"
               },
               "subnet": {
-                "id": "[variables('SubnetRef')]"
+                "id": "[parameters('subnet').SubnetRef]"
               }
             }
           }
